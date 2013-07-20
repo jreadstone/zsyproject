@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 业务系统的SQL映射文件装载 --><!--Converted at: Tue Jul 16 22:44:53 CST 2013-->
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD SQL Map Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias alias="dto" type="org.g4studio.core.metatype.impl.BaseDto" />
+	</typeAliases>
+	
+	<typeHandlers>
+		</typeHandlers>
+	
+	<mappers>
+		<mapper resource="org/g4studio/demo/dao/sqlmap/biz/Temp.xml"/>
+		<mapper resource="org/g4studio/system/workflow/dao/sqlmap/biz/Activiti.xml"/>
+	</mappers>
+</configuration>

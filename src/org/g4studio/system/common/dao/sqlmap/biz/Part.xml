@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- UI组件权限管理手工映射SQL语句 --><!--Converted at: Tue Jul 16 22:44:50 CST 2013-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Part">
+	<!--
+		Sorry, I can`t migrate	dto
+		See console output for further details 
+	-->
+	
+	<!-- 查询UI组件 -->
+	<select id="queryParts" parameterType="map" resultType="dto">
+		SELECT
+			   a.partid,
+			   a.menuid,
+			   b.menuname,
+			   a.cmpid,
+			   a.cmptype,
+			   a.remark
+		FROM eamenupart a, eamenu b
+	   WHERE 1 = 1 and a.menuid=b.menuid
+		<if test="partid != null and partid != '' ">
+			and a.partid = #{partid}
+		  </if>
+		  <if test="menuid != null and menuid != '' ">
+			and a.menuid = #{menuid}
+		  </if>
+		  <if test="cmptype != null and cmptype != '' ">
+			and a.cmptype = #{cmptype}
+		  </if>
+		  <if test="cmpid != null and cmpid != '' ">
+			and a.cmpid = #{cmpid}
+		  </if>
+		ORDER BY partid DESC
+	</select>
+	
+	<!-- 统计UI组件 -->
+	<select id="queryPartsForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		  FROM eamenupart a WHERE 1 = 1
+		<if test="partid != null and partid != '' ">
+			and a.partid = #{partid}
+		  </if>
+		  <if test="menuid != null and menuid != '' ">
+			and a.menuid = #{menuid}
+		  </if>
+		  <if test="cmptype != null and cmptype != '' ">
+			and a.cmptype = #{cmptype}
+		  </if>
+		  <if test="cmpid != null and cmpid != '' ">
+			and a.cmpid = #{cmpid}
+		  </if>
+	</select>
+	
+	<!-- 插入一条UI托管组件记录 -->
+	<insert id="savePartItem" parameterType="dto">
+		INSERT INTO eamenupart (
+		   partid, menuid, cmpid, 
+		   cmptype, remark) 
+		VALUES (#{partid}, #{menuid}, #{cmpid}, 
+		   #{cmptype}, #{remark})
+	</insert>
+	
+	<!-- 根据主键更新托管组件 -->
+	<update id="updatePartItem" parameterType="dto">
+         UPDATE eamenupart
+		<set>
+		<if test="menuid != null">  
+            menuid = #{menuid},  
+        </if>  
+        <if test="cmpid != null">  
+            cmpid = #{cmpid},  
+        </if>  
+        <if test="cmptype != null">  
+            cmptype = #{cmptype},  
+        </if>
+		<if test="remark != null">  
+            remark = #{remark}  
+        </if>
+		</set> 
+	        WHERE partid = #{partid}    
+	</update>
+	
+	<!-- 删除UI元素 -->
+	<delete id="deletePartItem" parameterType="map">
+		DELETE FROM eamenupart
+		      WHERE partid = #{partid}
+	</delete>
+	
+	<!-- 删除UI元素人员授权信息 -->
+	<delete id="deletePartUserGrantItem" parameterType="map">
+		DELETE FROM eausermenupart
+		      WHERE partid = #{partid}
+	</delete>
+	
+	<!-- 删除UI元素角色授权信息 -->
+	<delete id="deletePartRoleGrantItem" parameterType="map">
+		DELETE FROM earolemenupart
+		      WHERE partid = #{partid}
+	</delete>
+	
+	<select id="queryPartByDto" parameterType="map" resultType="dto">
+		SELECT
+			   a.partid,
+			   a.menuid,
+			   a.cmpid,
+			   a.cmptype,
+			   a.remark
+		FROM eamenupart a
+	   WHERE 1 = 1
+		<if test="partid != null and partid != '' ">
+			and a.partid = #{partid}
+		  </if>
+		  <if test="menuid != null and menuid != '' ">
+			and a.menuid = #{menuid}
+		  </if>
+		  <if test="cmptype != null and cmptype != '' ">
+			and a.cmptype = #{cmptype}
+		  </if>
+		  <if test="cmpid != null and cmpid != '' ">
+			and a.cmpid = #{cmpid}
+		  </if>
+		ORDER BY a.partid DESC
+	</select>
+	
+	<!-- 查询授权信息 -->
+	<select id="queryPart4UserGrant" parameterType="map" resultType="dto">
+		SELECT
+			   a.authorizeid,
+			   a.partauthtype,
+			   a.userid
+		FROM eausermenupart a
+	   WHERE a.userid = #{userid} and a.menuid=#{menuid} and a.partid = #{partid}
+	</select>
+	
+	<!-- 查询授权信息 -->
+	<select id="queryPart4RoleGrant" parameterType="map" resultType="dto">
+		SELECT
+			   a.authorizeid,
+			   a.partauthtype,
+			   a.roleid
+		FROM earolemenupart a
+	   WHERE a.roleid = #{roleid} and a.menuid=#{menuid} and a.partid = #{partid}
+	</select>
+	
+	<!-- 插入一条UI人员授权记录 -->
+	<insert id="insertEausermenupartItem" parameterType="dto">
+		INSERT INTO eausermenupart ( authorizeid, userid,menuid, partid, partauthtype) 
+		     VALUES (#{authorizeid}, #{userid}, #{menuid}, #{partid}, #{partauthtype})
+	</insert>
+	
+	<!-- 删除一条UI人员授权记录 -->
+	<delete id="deleteEausermenupartItem" parameterType="dto">
+		DELETE FROM eausermenupart
+		      WHERE authorizeid = #{authorizeid}
+	</delete>
+	
+	<!-- 修改UI人员授权类型 -->
+	<update id="updateEausermenupartItem" parameterType="dto">
+         UPDATE eausermenupart
+		<set>
+		<if test="partauthtype != null">  
+            partauthtype = #{partauthtype} 
+        </if>  
+		</set>
+	        WHERE authorizeid = #{authorizeid}   
+	</update>
+	
+	<!-- 插入一条UI角色授权记录 -->
+	<insert id="insertEarolemenupartItem" parameterType="dto">
+		INSERT INTO earolemenupart ( authorizeid, roleid,menuid, partid, partauthtype) 
+		     VALUES (#{authorizeid}, #{roleid}, #{menuid}, #{partid}, #{partauthtype})
+	</insert>
+	
+	<!-- 删除一条UI角色授权记录 -->
+	<delete id="deleteEarolemenupartItem" parameterType="dto">
+		DELETE FROM earolemenupart
+		      WHERE authorizeid = #{authorizeid}
+	</delete>
+	
+	<!-- 修改UI角色授权类型 -->
+	<update id="updateEarolemenupartItem" parameterType="dto">
+         UPDATE earolemenupart
+		<set>
+		<if test="partauthtype != null">  
+            partauthtype = #{partauthtype} 
+        </if>  
+		</set>
+	        WHERE authorizeid = #{authorizeid}   
+	</update>
+
+</mapper>

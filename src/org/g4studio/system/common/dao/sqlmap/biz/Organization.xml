@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 组织机构模型手工映射SQL语句 --><!--Converted at: Tue Jul 16 22:43:54 CST 2013-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Organization">
+	<!--
+		Sorry, I can`t migrate	dto
+		See console output for further details 
+	-->
+	<!--
+		Sorry, I can`t migrate	userInfo
+		See console output for further details 
+	-->
+	<!--
+		Sorry, I can`t migrate	menuVo
+		See console output for further details 
+	-->
+	
+	<!-- 查询用户信息 -->
+	<select id="getUserInfo" parameterType="map" resultType="userInfo">
+		SELECT a.userid, a.username, a.ACCOUNT, a.PASSWORD, a.sex, a.deptid, b.theme, b.layout,
+		       (SELECT customid
+		          FROM eadept
+		         WHERE deptid = a.deptid) AS customid,
+		       (SELECT deptname
+		          FROM eadept
+		         WHERE deptid = a.deptid) AS deptname
+		  FROM eauser a, eausersubinfo b
+		  WHERE a.userid = b.userid and a.locked = #{lock} and a.enabled = '1'
+		<if test="account != null and account != '' ">
+			and account = #{account}
+		  </if>
+		  <if test="userid != null and userid != '' ">
+			and userid = #{userid}
+		  </if>
+		  <if test="password != null and password != '' ">
+			and password = #{password}
+		  </if>
+	</select>
+	
+	<!-- 查询菜单名称信息:菜单中文路径 -->
+	<select id="getMenuNameForCNPath" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT menuname FROM eamenu WHERE menuid = #{menuid}
+	</select>
+	
+	<!-- 根据DTO查询部门信息 生成部门树 -->
+	<select id="queryDeptItemsByDto" parameterType="map" resultType="dto">
+		SELECT 
+		   deptid as id, deptname as text, parentid,leaf,sortno
+		FROM EADEPT WHERE enabled='1'
+		<if test="deptid != null and deptid != '' ">
+			and deptid = #{deptid}
+		  </if>
+		  <if test="parentid != null and parentid != '' ">
+			and parentid = #{parentid}
+		  </if>
+		  <if test="deptname != null and deptname != '' ">
+			and deptname like '%'||#{deptname}||'%'
+		  </if>
+		order by sortno
+	</select>
+	
+	<!-- 部门管理-部门列表 -->
+	<select id="queryDeptsForManage" parameterType="map" resultType="dto">
+	   SELECT   deptid, deptname, customid,
+	         (SELECT deptname
+	            FROM eadept
+	           WHERE deptid = a.parentid) AS parentdeptname,
+	         (SELECT COUNT(*)
+	            FROM eauser
+	           WHERE deptid = a.deptid and enabled = '1') AS usercount,
+	         (SELECT COUNT(*)
+	            FROM earole
+	           WHERE deptid = a.deptid) AS rolecount, parentid, leaf, sortno,
+	         remark
+	       FROM eadept a WHERE a.enabled='1'
+		<if test="deptid != null and deptid != '' ">
+			and a.deptid like '%'||#{deptid}||'%'
+		  </if>
+		  <if test="parentid != null and parentid != '' ">
+			and a.parentid = #{parentid}
+		  </if>
+		  <if test="deptname != null and deptname != '' ">
+			and a.deptname like '%'||#{deptname}||'%'
+		  </if>
+		  <if test="queryParam != null and queryParam != '' ">
+			and a.queryParam like '%'||#{queryParam}||'%'
+		  </if>
+	   ORDER BY sortno DESC
+	</select>
+	
+	<select id="queryDeptsForManageForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		  FROM eadept a WHERE a.enabled='1'
+		<if test="deptid != null and deptid != '' ">
+			and a.deptid like '%'||#{deptid}||'%'
+		  </if>
+		  <if test="parentid != null and parentid != '' ">
+			and a.parentid = #{parentid}
+		  </if>
+		  <if test="deptname != null and deptname != '' ">
+			and a.deptname like '%'||#{deptname}||'%'
+		  </if>
+		  <if test="queryParam != null and queryParam != '' ">
+			and a.queryParam like '%'||#{queryParam}||'%'
+		  </if>
+	</select>
+	
+	<!-- 插入一条部门记录 -->
+	<insert id="saveDeptItem" parameterType="dto">
+		INSERT INTO eadept (
+		   deptid, deptname, parentid, 
+		   customid,leaf, sortno, remark, enabled) 
+		VALUES (#{deptid}, #{deptname}, #{parentid},
+		    #{customid}, #{leaf}, #{sortno}, #{remark}, #{enabled})
+	</insert>
+    
+	<!-- 更新叶子节点 -->
+	<update id="updateLeafFieldInEaDept" parameterType="dto">
+         UPDATE eadept SET leaf = #{leaf} WHERE deptid = #{deptid}  and enabled='1'
+	</update>
+	
+	<!-- 根据主键更新菜单 -->
+	<update id="updateDeptItem" parameterType="dto">
+         UPDATE eadept
+		<set>
+		<if test="deptname != null">  
+            deptname = #{deptname},  
+        </if>  
+        <if test="parentid != null">  
+            parentid = #{parentid},  
+        </if>  
+        <if test="customid != null">  
+            customid = #{customid},
+        </if>
+		<if test="leaf != null">  
+            leaf = #{leaf},  
+        </if>  
+        <if test="sortno != null">  
+            sortno = #{sortno},  
+        </if>  
+        <if test="remark != null">  
+            remark = #{remark}  
+        </if>
+		</set>
+	        WHERE deptid = #{deptid}  and enabled='1'  
+	</update>
+    
+	<!-- 删除部门  -->
+	<update id="updateEadeptItem" parameterType="map">
+		UPDATE 
+		  eadept SET ENABLED = '0'
+		 WHERE deptid like '${deptid}%'
+	</update>
+	
+	<select id="prepareChangeLeafOfDeletedParentForEadept" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		  FROM eadept a WHERE parentid = #{deptid} and enabled='1'
+	</select>
+	
+	<!-- 删除角色授权表  -->
+	<delete id="deleteEaroleAuthorizeInDeptManage" parameterType="map">
+		DELETE
+		  FROM earoleauthorize
+		      WHERE roleid IN (SELECT roleid
+		                         FROM earole
+		                        WHERE deptid like '${deptid}%')
+	</delete>
+	
+	<!-- 删除角色表  -->
+	<delete id="deleteEaroleInDeptManage" parameterType="map">
+		DELETE 
+		  FROM earole
+		      WHERE deptid like '${deptid}%'
+	</delete>
+	
+	<!-- 删除人员授权表  -->
+	<delete id="deleteEauserauthorizeInDeptManage" parameterType="map">
+		DELETE 
+		  FROM eauserauthorize
+		      WHERE userid IN (SELECT userid
+		                         FROM eauser
+		                        WHERE deptid like '${deptid}%')
+	</delete>
+	
+	<!-- 删除人员授权表2  -->
+	<delete id="deleteEauserauthorizeInDeptManage2" parameterType="map">
+		DELETE 
+		  FROM eauserauthorize
+		      WHERE roleid IN (SELECT roleid
+		                         FROM eauser
+		                        WHERE deptid like '${deptid}%')
+	</delete>
+	
+	<!-- 删除人员菜单映射表  -->
+	<delete id="deleteEausermenumapInDeptManage" parameterType="map">
+		DELETE 
+		  FROM eausermenumap
+		      WHERE userid IN (SELECT userid
+		                         FROM eauser
+		                        WHERE deptid like '${deptid}%')
+	</delete>
+	
+	<!-- 删除人员附属信息表  -->
+	<delete id="deleteEausersubinfoInDeptManage" parameterType="map">
+		DELETE 
+		  FROM eausersubinfo
+		      WHERE userid IN (SELECT userid
+		                         FROM eauser
+		                        WHERE deptid like '${deptid}%')
+	</delete>
+	
+	<!-- 删除UI元素角色授权表  -->
+	<delete id="deleteEarolemenumapInDeptManage" parameterType="map">
+		DELETE 
+		  FROM earolemenupart
+		      WHERE roleid IN (SELECT roleid
+		                         FROM earole
+		                        WHERE deptid like '${deptid}%')
+	</delete>
+	
+	<!-- 删除人员表  -->
+	<update id="updateEauserInDeptManage" parameterType="map">
+		UPDATE eauser
+		  SET enabled = '0' 
+		      WHERE deptid like '${deptid}%'
+	</update>
+	
+	<!-- 根据用户所属部门编号查询部门对象 -->
+	<select id="queryDeptinfoByDeptid" parameterType="map" resultType="dto">
+		SELECT deptid,deptname
+		  FROM eadept WHERE deptid = #{deptid}
+	</select>
+	
+	<!-- 保存用户主题样式信息 -->
+	<update id="saveUserTheme" parameterType="dto">
+		update eausersubinfo set theme = #{theme} where userid = #{userid}
+	</update>
+	
+	<!-- 保存用户布局信息 -->
+	<update id="saveUserLayout" parameterType="dto">
+		update eausersubinfo set layout = #{layout} where userid = #{userid}
+	</update>
+	
+	<!-- 保存用户桌面背景信息 -->
+	<update id="saveUserBackground" parameterType="dto">
+		update eausersubinfo set background = #{background} where userid = #{userid}
+	</update>
+	
+	<!-- 根据账户查询会话连接数 -->
+	<select id="countHttpSessions" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(*) from eahttpsession where account = #{account}
+	</select>
+	
+</mapper>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 系统监控手工映射SQL语句 --><!--Converted at: Tue Jul 16 22:43:37 CST 2013-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Monitor">
+	<!--
+		Sorry, I can`t migrate	dto
+		See console output for further details 
+	-->
+	<!--
+		Sorry, I can`t migrate	userInfo
+		See console output for further details 
+	-->
+	
+	<!-- 查询HTTP会话信息 -->
+	<select id="queryHttpSessions" parameterType="map" resultType="userInfo">
+		 SELECT 
+			   sessionid as sessionID, userid, username, account, createtime as sessionCreatedTime,explorer, loginip as loginIP
+	      FROM eahttpsession WHERE 1 = 1
+	      <if test="account != null and account != '' ">
+			and account like '%'||#{account}||'%'
+		  </if>
+		  <if test="username != null and username != '' ">
+			and username like '%'||#{username}||'%'
+		  </if>
+	</select>
+	<select id="queryHttpSessionsForPageCount" parameterType="map" resultType="java.lang.Integer">
+		 SELECT 
+			   count(*) as count
+	      FROM eahttpsession WHERE 1 = 1
+	     <if test="account != null and account != '' ">
+			and account like '%'||#{account}||'%'
+		  </if>
+		  <if test="username != null and username != '' ">
+			and username like '%'||#{username}||'%'
+		  </if>      
+	</select>
+	
+	<!-- 查询HTTP会话信息 -->
+	<select id="queryHttpSessionsByID" parameterType="java.lang.String" resultType="userInfo">
+		 SELECT 
+			   sessionid as sessionID, userid, username, account, createtime as sessionCreatedTime, explorer, loginip as loginIP
+	      FROM eahttpsession where sessionid = #{sessionid}
+	</select>
+	
+	<!-- 插入一条HTTP会话记录 -->
+	<insert id="saveHttpSession" parameterType="userInfo">
+		INSERT INTO eahttpsession (
+		   sessionid, username, account, 
+		   createtime, loginip,userid,explorer) 
+		VALUES (#{sessionID}, #{username}, #{account}, 
+		   #{sessionCreatedTime}, #{loginIP}, #{userid},#{explorer})
+	</insert>
+	
+	<!-- 删除会话 -->
+	<delete id="deleteHttpSession" parameterType="dto">
+		DELETE 
+		  FROM eahttpsession
+		  <where>
+		 <if test="sessionid != null and sessionid != '' ">
+			sessionid = #{sessionid}
+		  </if>
+		  </where>
+	</delete>
+	
+	<!-- 创建一个事件 -->
+	<insert id="saveEvent" parameterType="dto">
+		INSERT INTO eaevent (
+		   eventid, userid, account, 
+		   username, description, activetime,requestpath,methodname,costtime) 
+		VALUES (#{eventid}, #{userid}, #{account}, 
+		   #{username}, #{description}, #{activetime},#{requestpath},#{methodname},#{costtime})
+	</insert>
+	
+	<!-- 查询事件 -->
+	<select id="queryEventsByDto" parameterType="map" resultType="dto">
+		SELECT   eventid, userid, account, username, description, activetime,
+		         requestpath, methodname,  costtime 
+		    FROM eaevent a
+		   WHERE 1 = 1
+		  <if test="account != null and account != '' ">
+			and account like '%'||#{account}||'%'
+		  </if>
+		  <if test="username != null and username != '' ">
+			and username like '%'||#{username}||'%'
+		  </if>
+		  <if test="keyword != null and keyword != '' ">
+			and (description like '%'||#{keyword}||'%' or requestpath like '%'||#{keyword}||'%' or methodname like '%'||#{keyword}||'%')
+		  </if>
+		  <if test="ksrq != null and ksrq != '' ">
+			and activetime  <![CDATA[>=]]> #{ksrq}
+		  </if>
+		  <if test="jsrq != null and jsrq != '' ">
+			and activetime  <![CDATA[<=]]> #{jsrq}
+		  </if>
+		ORDER BY eventid DESC
+	</select>
+	
+	<!-- 查询事件 -->
+	<select id="queryEventsByDtoForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		  FROM eaevent a WHERE 1 = 1
+		<if test="account != null and account != '' ">
+			and account like '%'||#{account}||'%'
+		  </if>
+		  <if test="username != null and username != '' ">
+			and username like '%'||#{username}||'%'
+		  </if>
+		  <if test="keyword != null and keyword != '' ">
+			and (description like '%'||#{keyword}||'%' or requestpath like '%'||#{keyword}||'%' or methodname like '%'||#{keyword}||'%')
+		  </if>
+		  <if test="ksrq != null and ksrq != '' ">
+			and activetime  <![CDATA[>=]]> #{ksrq}
+		  </if>
+		  <if test="jsrq != null and jsrq != '' ">
+			and activetime  <![CDATA[<=]]> #{jsrq}
+		  </if>
+	</select>
+	
+	<!-- 删除事件 -->
+	<delete id="deleteEvent" parameterType="map">
+		DELETE 
+		  FROM eaevent WHERE 1 = 1
+		  <if test="eventid != null and eventid != '' ">
+			and eventid  = #{eventid}
+		  </if>
+	</delete>
+	
+	<!-- 查询事件 -->
+	<select id="queryEventByEventID" parameterType="java.lang.String" resultType="dto">
+		SELECT eventid, userid, account, username, description, activetime,requestpath,methodname,costtime
+	      FROM eaevent WHERE eventid = #{eventId}
+	</select>
+	
+	<!-- 插入一条异常监控记录 -->
+	<insert id="saveEaExceptionDomain" parameterType="dto">
+		INSERT INTO eaexception (exceptionid, clazz, methodname, activetime, exception) 
+		      VALUES ( #{exceptionid}, #{clazz}, #{methodname}, #{activetime}, #{exception} )
+	</insert>
+	
+	<!-- 查询监控记录 -->
+	<select id="queryExceptionRecordsByDto" parameterType="map" resultType="dto">
+		SELECT   exceptionid, clazz, methodname,  activetime, exception
+		    FROM eaexception a 
+		 WHERE 1 = 1
+		  <if test="keyword != null and keyword != '' ">
+			and (clazz like '%'||#{keyword}||'%' or methodname like '%'||#{keyword}||'%' or exception like '%'||#{keyword}||'%')
+		  </if>
+		  <if test="ksrq != null and ksrq != '' ">
+			and activetime  <![CDATA[>=]]> #{ksrq}
+		  </if>
+		  <if test="jsrq != null and jsrq != '' ">
+			and activetime  <![CDATA[<=]]> #{jsrq}
+		  </if>
+		ORDER BY exceptionid DESC
+	</select>
+	
+	<!-- 查询监控记录 -->
+	<select id="queryExceptionRecordsByDtoForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		  FROM eaexception a WHERE 1 = 1
+		<if test="keyword != null and keyword != '' ">
+			and (clazz like '%'||#{keyword}||'%' or methodname like '%'||#{keyword}||'%' or exception like '%'||#{keyword}||'%')
+		  </if>
+		  <if test="ksrq != null and ksrq != '' ">
+			and activetime  <![CDATA[>=]]> #{ksrq}
+		  </if>
+		  <if test="jsrq != null and jsrq != '' ">
+			and activetime  <![CDATA[<=]]> #{jsrq}
+		  </if>
+	</select>
+	
+	<!-- 删除SpringBean监控记录 -->
+	<delete id="deleteExceptionRecord" parameterType="map">
+		DELETE 
+		  FROM eaexception WHERE 1 = 1
+		 <if test="exceptionid != null and exceptionid != '' ">
+			and exceptionid  = #{exceptionid}
+		  </if>
+	</delete>
+	
+	<!-- 查询JDBC监控记录 -->
+	<select id="queryJdbcMonitorRecordsByDto" parameterType="map" resultType="dto">
+		SELECT monitorid, sqltext as sqltext, starttime, costtime, effectrows, type
+            FROM eajdbcmonitor WHERE 1 = 1
+		  <if test="sql != null and sql != '' ">
+			and sql like '%'||#{sql}||'%'
+		  </if>
+		  <if test="ksrq != null and ksrq != '' ">
+			and starttime  <![CDATA[>=]]> #{ksrq}
+		  </if>
+		  <if test="jsrq != null and jsrq != '' ">
+			and starttime  <![CDATA[<=]]> #{jsrq}
+		  </if>
+		  <if test="costtime != null and costtime != '' ">
+			and costtime  <![CDATA[>=]]> #{costtime}
+		  </if>
+		  <if test="effectrows != null and effectrows != '' ">
+			and effectrows  <![CDATA[>=]]> #{effectrows}
+		  </if>
+		  <if test="type != null and type != '' ">
+			and type = #{type}
+		  </if>
+		     ORDER BY starttime desc
+	</select>
+	
+	<!-- 查询JDBC监控记录 -->
+	<select id="queryJdbcMonitorRecordsByDtoForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		  FROM eajdbcmonitor WHERE 1 = 1
+		<if test="sql != null and sql != '' ">
+			and sql like '%'||#{sql}||'%'
+		  </if>
+		  <if test="ksrq != null and ksrq != '' ">
+			and starttime  <![CDATA[>=]]> #{ksrq}
+		  </if>
+		  <if test="jsrq != null and jsrq != '' ">
+			and starttime  <![CDATA[<=]]> #{jsrq}
+		  </if>
+		  <if test="costtime != null and costtime != '' ">
+			and costtime  <![CDATA[>=]]> #{costtime}
+		  </if>
+		  <if test="effectrows != null and effectrows != '' ">
+			and effectrows  <![CDATA[>=]]> #{effectrows}
+		  </if>
+		  <if test="type != null and type != '' ">
+			and type = #{type}
+		  </if>
+	</select>
+	
+	<!-- 删除JDBC监控记录 -->
+	<delete id="deleteJdbcMonitorData" parameterType="map">
+		DELETE 
+		  FROM eajdbcmonitor where 1 = 1
+		<if test="monitorid != null and monitorid != '' ">
+			and monitorid = #{monitorid}
+		  </if>
+	</delete>
+	
+</mapper>

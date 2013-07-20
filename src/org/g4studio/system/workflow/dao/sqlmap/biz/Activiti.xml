@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 手工映射SQL语句 --><!--Converted at: Tue Jul 16 22:43:11 CST 2013-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Activiti">
+	
+	<!-- 查询流程定义信息 -->
+	<select id="qryprocessDefList" parameterType="map" resultType="dto">
+		 SELECT 
+			   id_, name_, key_,to_char(create_time_,'yyyy-MM-dd hh:mm:ss') create_time_,version_
+	      FROM ACT_RE_MODEL
+		  <where>
+	      <if test="name_ != null and name_ != '' ">
+			and name_ like '%'||#{name_}||'%'
+		  </if>
+		  </where>
+	</select>
+	<!-- 统计流程定义信息 -->
+	<select id="countqryprocessDefList" parameterType="map" resultType="java.lang.Integer">
+		 SELECT 
+			   count(id_)
+	      FROM ACT_RE_MODEL
+		  <where>
+	      <if test="name_ != null and name_ != '' ">
+			and name_ like '%'||#{name_}||'%'
+		  </if>
+		  </where>
+	</select>
+	
+</mapper>

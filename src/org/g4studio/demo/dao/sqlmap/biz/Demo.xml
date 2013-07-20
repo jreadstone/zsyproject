@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 演示与教程手工映射SQL语句 --><!--Converted at: Thu Jul 18 11:21:18 CST 2013-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Demo">
+
+	<!-- 查询FlashReport元数据  -->
+	<select id="getFcfDataList" parameterType="map" resultType="dto">
+		SELECT name as name, value as value, color as color, alpha as alpha,
+		issliced as isSliced
+		FROM EA_DEMO_FCF where product = #{product}
+		<if test="fcfid != null and fcfid != '' ">
+			and fcfid  <![CDATA[<=]]> #{fcfid}
+		  </if>
+	</select>
+
+	<!-- 查询FlashReport元数据合计  -->
+	<select id="getFcfSumDataList" parameterType="map" resultType="dto">
+		SELECT name, sum(value) as value
+		FROM EA_DEMO_FCF where product in ('1','2')
+		group by name
+	</select>
+
+	<!-- 查询测试数据  -->
+	<select id="getTestData" parameterType="map" resultType="dto">
+		SELECT a.sxh, a.xh, DECODE (a.zflb, 11, '门诊', 34, '住院') AS zflb,
+		a.grbm,
+		b.xm AS xm, (SELECT sfdlmc
+		FROM bg01sfxmdl
+		WHERE sfdlbm =
+		a.sfdlbm) AS sfdlmc, a.sfxmmc, a.sl,
+		a.sjjg,a.fyze,a.cd,a.gg,a.sfsj,a.sfy
+		FROM by09zyfymx a, by10cyjsb b
+	WHERE a.sxh = b.sxh and a.yybm = '00000021' and a.sfsj  &lt;= 
+	to_date('2009-03-20', 'yyyy-mm-dd') and a.sfsj  &gt;= 
+		to_date('2009-03-13', 'yyyy-mm-dd')
+	</select>
+
+	<!-- 查询测试数据  -->
+	<select id="getTestData1" parameterType="map" resultType="dto">
+		SELECT a.sxh, a.dwmc, a.grbm, a.xm, decode(a.xb, 1, '男', 2, '女' ,
+		'人妖') as xb, a.xnl, a.fyze, a.qzfbf AS zfje,
+		(a.fyze - a.qzfbf) AS
+		ybbx, a.jbsj AS jssj, a.sfy as jbr, (select yymc from
+		bg05ddyyda where
+		yybm = a.yybm) as yymc
+		FROM by10cyjsb a where yybm = '00000021'
+	</select>
+
+	<!-- 查询测试数据  -->
+	<select id="getTestData2" parameterType="map" resultType="dto">
+		SELECT a.sfdlbm, a.xmmc, a.xmrj, a.gg, a.dw, a.zfbl9 AS zfbl, a.jx,
+		a.cd,
+		a.qyzt AS qybz, a.ggsj, a.yybm
+		FROM bg02ldfwxm a where yybm =
+		'03010001'
+	</select>
+
+	<!-- 插入一条结算数据 -->
+	<insert id="insertEz_byjsbDomain" parameterType="dto">
+		INSERT INTO
+		EA_DEMO_BYJSB (
+		sxh, dwmc, grbm, xm, xb, xnl, fyze, zfje, ybbx, jssj, yymc,
+		jbr)
+		VALUES (#{sxh}, #{dwmc}, #{grbm}, #{xm}, #{xb}, #{xnl}, #{fyze}, #{zfje},
+		#{ybbx}, #{jssj}, #{yymc}, #{jbr})
+	</insert>
+
+	<!-- 插入一条收费项目 -->
+	<insert id="insertEz_sfxmDomain" parameterType="dto">
+		INSERT INTO EA_DEMO_SFXM 
+		     (xmid, sfdlbm, xmmc,xmrj, gg, dw,zfbl, jx, cd,qybz, yybm,ggsj)
+		VALUES
+            (#{xmid}, #{sfdlbm}, #{xmmc},#{xmrj}, #{gg}, #{dw},#{zfbl}, #{jx},#{cd},
+             #{qybz}, #{yybm}, #{ggsj} )
+	</insert>
+
+	<!-- 查询医院收费目录 -->
+	<select id="queryCatalogsForPrint" parameterType="map" resultType="dto">
+		SELECT
+		xmid, xmmc, xmrj,
+		gg, dw, zfbl,
+		jx, cd, qybz,
+		yybm, ggsj, sfdlbm
+		FROM EA_DEMO_SFXM a WHERE 1 = 1
+		<if test="xmmc != null and xmmc != '' ">
+			and a.xmmc like '%'||#{xmmc}||'%'
+		  </if>
+		ORDER BY xmid desc
+	</select>
+	
+	<select id="queryCatalogsForPrintForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		FROM EA_DEMO_SFXM a WHERE 1 = 1
+		<if test="xmmc != null and xmmc != '' ">
+			and a.xmmc like '%'||#{xmmc}||'%'
+		  </if>
+	</select>
+
+	<!-- 查询医院收费目录-->
+	<select id="queryCatalogsForPrintLimitRows" parameterType="map" resultType="dto">
+		SELECT
+		xmid, xmmc, xmrj,
+		gg, dw, zfbl,
+		jx, cd, qybz,
+		yybm, ggsj, sfdlbm
+	FROM EA_DEMO_SFXM a WHERE 1 = 1 
+		<if test="xmmc != null and xmmc != '' ">
+			and a.xmmc like '%'||#{xmmc}||'%'
+		  </if>
+	</select>
+	
+	<!-- 查询病人结算信息 -->
+	<select id="queryBalanceInfo" parameterType="map" resultType="dto">
+		SELECT sxh, dwmc, grbm, xm, xb, xnl, fyze, zfje, ybbx, jssj, yymc, jbr
+		  FROM EA_DEMO_BYJSB a
+		  <where>
+		<if test="sxh != null and sxh != '' ">
+			and a.sxh = #{sxh}
+		  </if>
+		  <if test="xm != null and xm != '' ">
+			and a.xm like '%'||#{xm}||'%'
+		  </if>
+		  </where>
+	</select>
+	
+	<!-- 查询病人结算信息 -->
+	<select id="countBalanceInfo" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM EA_DEMO_BYJSB a
+		<where>
+		<if test="sxh != null and sxh != '' ">
+			and a.sxh = #{sxh}
+		  </if>
+		  <if test="xm != null and xm != '' ">
+			and a.xm like '%'||#{xm}||'%'
+		  </if>
+		  </where>
+	</select>
+	
+	<!-- 查询病人结算汇总信息 -->
+	<select id="sumBalanceInfo" parameterType="map" resultType="dto">
+		SELECT COUNT(sxh)  AS sxh, SUM(fyze) AS fyze, SUM(ybbx) AS ybbx, SUM(zfje) AS zfje
+		    FROM ea_demo_byjsb a
+		<where>
+		<if test="sxh != null and sxh != '' ">
+			and a.sxh = #{sxh}
+		  </if>
+		  <if test="xm != null and xm != '' ">
+			and a.xm like '%'||#{xm}||'%'
+		  </if>
+		  </where>
+	</select>
+
+	<!-- 查询中国行政区划数据  -->
+	<select id="getChinaDataArea" parameterType="map" resultType="dto">
+		SELECT areacode as value, areaname as text
+		FROM ea_demo_chinaarea
+		<where>
+		<if test="areacodelength != null and areacodelength != '' ">
+			and a.areacodelength = #{areacodelength}
+		  </if>
+		  <if test="areacode != null and areacode != '' ">
+			and a.areacode like '%'||#{areacode}||'%'
+		  </if>
+		  </where>
+	</select>
+
+	<!-- 参数管理-查询参数列表 -->
+	<select id="getChinaDataArea4Paging" parameterType="map" resultType="dto">
+		SELECT areacode as value,
+		areaname as text
+		FROM ea_demo_chinaarea a
+		WHERE 1 = 1
+		<if test="areacode != null and areacode != '' ">
+			and a.areacode = #{areacode}
+		  </if>
+		ORDER BY areacode desc
+	</select>
+	
+	<select id="getChinaDataArea4PagingForPageCount" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		FROM ea_demo_chinaarea a WHERE 1 = 1
+		<if test="areacode != null and areacode != '' ">
+			and a.areacode = #{areacode}
+		  </if>
+	</select>
+
+	<!-- 查询医院收费目录(表格演示) -->
+	<select id="queryCatalogsForGridDemo" parameterType="map" resultType="dto">
+		SELECT
+		xmid, xmmc, xmrj,
+		gg, dw, zfbl,
+		jx, cd, qybz,
+		yybm, ggsj, sfdlbm
+		FROM EA_DEMO_SFXM a
+		<where>
+		<if test="xmid != null and xmid != '' ">
+			and a.xmid = #{xmid}
+		  </if>
+		  <if test="xmmc != null and xmmc != '' ">
+			and a.xmmc like '%'||#{xmmc}||'%'
+		  </if>
+		  <if test="sfdlbm != null and sfdlbm != '' ">
+			and a.sfdlbm = #{sfdlbm}
+		  </if>
+		  <if test="cd != null and cd != '' ">
+			and a.cd like '%'||#{cd}||'%'
+		  </if>
+		  <if test="jx != null and jx != '' ">
+			and a.jx = #{jx}
+		  </if>
+		  </where>
+		ORDER BY xmid desc
+	</select>
+	
+	<select id="countCatalogsForGridDemo" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*) as count
+		FROM EA_DEMO_SFXM a
+		<where>
+		<if test="xmid != null and xmid != '' ">
+			and a.xmid = #{xmid}
+		  </if>
+		  <if test="xmmc != null and xmmc != '' ">
+			and a.xmmc like '%'||#{xmmc}||'%'
+		  </if>
+		  <if test="sfdlbm != null and sfdlbm != '' ">
+			and a.sfdlbm = #{sfdlbm}
+		  </if>
+		  <if test="cd != null and cd != '' ">
+			and a.cd like '%'||#{cd}||'%'
+		  </if>
+		  <if test="jx != null and jx != '' ">
+			and a.jx = #{jx}
+		  </if>
+		  </where>
+	</select>
+
+	<!-- 查询第一级树节点 -->
+	<select id="queryAreas4Tree4FirstLevel" parameterType="map" resultType="dto">
+		SELECT areacode as id, areaname as text
+		FROM
+		ea_demo_chinaarea a where length(areacode) = 2
+	</select>
+
+	<!-- 查询树节点 -->
+	<select id="queryAreas4Tree" parameterType="map" resultType="dto">
+		SELECT areacode as id, areaname as text
+		FROM ea_demo_chinaarea a WHERE
+		a.areacode like '${areacode}%' and
+		length(areacode) = ${length}
+	</select>
+
+	<!-- 查询表格树数据 -->
+	<select id="queryDeptItemsByDto4TreeGridDemo" parameterType="map" resultType="dto">
+		SELECT
+		deptid as id, deptname as text, parentid,sortno,customid,leaf
+		FROM EADEPT
+		<where>
+		<if test="deptid != null and deptid != '' ">
+			and deptid = #{deptid}
+		  </if>
+		  <if test="deptname != null and deptname != '' ">
+			and deptname like '%'||#{deptname}||'%'
+		  </if>
+		  <if test="parentid != null and parentid != '' ">
+			and parentid = #{parentid}
+		  </if>
+		  </where>
+		order by sortno
+	</select>
+
+	<!-- 查询病人结算信息 -->
+	<select id="queryBalanceInfo2" parameterType="map" resultType="dto">
+		SELECT sxh, dwmc, grbm, xm, xb, xnl, fyze, zfje, ybbx, jssj, yymc, jbr
+		FROM EA_DEMO_BYJSB a
+		<where>
+		<if test="sxh != null and sxh != '' ">
+			and a.sxh = #{sxh}
+		  </if>
+		  <if test="dwmc != null and dwmc != '' ">
+			and a.dwmc like '%'||#{dwmc}||'%'
+		  </if>
+		  <if test="grbm != null and grbm != '' ">
+			and a.grbm = #{grbm}
+		  </if>
+		  <if test="xm != null and xm != '' ">
+			and a.xm like '%'||#{xm}||'%'
+		  </if>
+		  <if test="xnl1 != null and xnl1 != '' ">
+			and a.xnl <![CDATA[ >= ]]> #{xnl1}
+		  </if>
+		  <if test="xnl2 != null and xnl2 != '' ">
+			and a.xnl <![CDATA[ <= ]]> #{xnl2}
+		  </if>
+		  </where>
+	</select>
+	
+	<!-- 查询病人结算信息 -->
+	<select id="countBalanceInfo2" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)
+		FROM EA_DEMO_BYJSB a
+		<where>
+		<if test="sxh != null and sxh != '' ">
+			and a.sxh = #{sxh}
+		  </if>
+		  <if test="dwmc != null and dwmc != '' ">
+			and a.dwmc like '%'||#{dwmc}||'%'
+		  </if>
+		  <if test="grbm != null and grbm != '' ">
+			and a.grbm = #{grbm}
+		  </if>
+		  <if test="xm != null and xm != '' ">
+			and a.xm like '%'||#{xm}||'%'
+		  </if>
+		  <if test="xnl1 != null and xnl1 != '' ">
+			and a.xnl <![CDATA[ >= ]]> #{xnl1}
+		  </if>
+		  <if test="xnl2 != null and xnl2 != '' ">
+			and a.xnl <![CDATA[ <= ]]> #{xnl2}
+		  </if>
+		  </where>
+	</select>
+
+	<!-- 查询医院收费目录综合实例 -->
+	<select id="queryCatalogs2" parameterType="map" resultType="dto">
+		SELECT
+		xmid, xmmc, xmrj,
+		gg, dw, zfbl,
+		jx, cd, qybz,
+		yybm, ggsj, sfdlbm
+		FROM EA_DEMO_SFXM a WHERE 1 = 1
+		<if test="xmid != null and xmid != '' ">
+			and a.xmid= #{xmid}
+		  </if>
+		 <if test="xmmc != null and xmmc != '' ">
+			and a.xmmc like '%'||#{xmmc}||'%'
+		  </if>
+	</select>
+
+	<update id="updatesfxm" parameterType="map">
+		UPDATE EA_DEMO_SFXM
+		<set>
+		<if test="sfdlbm != null">  
+            sfdlbm = #{sfdlbm},  
+        </if>  
+        <if test="ggsj != null">  
+            ggsj = #{ggsj},  
+        </if>  
+        <if test="yybm != null">  
+            yybm = #{yybm},  
+        </if>
+		<if test="qybz != null">  
+            qybz = #{qybz},  
+        </if>  
+        <if test="cd != null">  
+            cd = #{cd},  
+        </if>  
+        <if test="jx != null">  
+            jx = #{jx},  
+        </if>
+		<if test="zfbl != null">  
+            zfbl = #{zfbl},  
+        </if>  
+        <if test="dw != null">  
+            dw = #{dw}
+        </if>
+		<if test="gg != null">  
+            gg = #{gg},  
+        </if>
+		<if test="xmmc != null">  
+            xmmc = #{xmmc},  
+        </if>  
+        <if test="xmrj != null">  
+            xmrj = #{xmrj}
+        </if>
+		</set> 
+		WHERE 1=1 and xmid = #{xmid}
+	</update>
+
+	<delete id="deleteSfxm" parameterType="map">
+       DELETE FROM EA_DEMO_SFXM WHERE xmid = #{xmid}
+	</delete>
+	
+	<update id="updateByjsb" parameterType="map">
+		UPDATE EA_DEMO_BYJSB SET fyze = #{fyze} WHERE sxh = #{sxh}
+	</update>
+	
+	<!-- 查询医院收费目录(打印):综合范例 -->
+	<select id="queryCatalogsForPrintLimitRows4DemoWithMysql" parameterType="map" resultType="catalogVO">
+		SELECT 
+		       xmid, xmmc, xmrj, gg, dw, zfbl, jx, cd, qybz, yybm, ggsj, sfdlbm
+	      FROM EA_DEMO_SFXM a 
+	     WHERE 1=1 limit 50
+	</select>
+	
+	<!-- 查询文件列表信息 -->
+	<select id="queryFiles" parameterType="map" resultType="dto">
+	   SELECT fileid, title, path,filesize,remark
+		 FROM ea_demo_upload WHERE 1=1
+		<if test="title != null and title != '' ">
+			and a.title like '%'||#{title}||'%'
+		  </if>
+		order by fileid desc
+	</select>
+	
+	<!-- 统计文件列表 -->
+	<select id="countFiles" parameterType="map" resultType="java.lang.Integer">
+	   SELECT count(*)
+		 FROM ea_demo_upload WHERE 1=1
+		<if test="title != null and title != '' ">
+			and a.title like '%'||#{title}||'%'
+		  </if>
+	</select>
+	
+	<!-- 插入一文件上传数据 -->
+	<insert id="insertEa_demo_uploadPo" parameterType="dto">
+		  INSERT INTO
+			Ea_demo_upload (fileid, title, path,filesize,remark)
+		  VALUES (#{fileid}, #{title}, #{path},#{filesize},#{remark})
+	</insert>
+	
+	<!-- 根据文件ID获取一个文件 -->
+	<select id="queryFileByFileID" parameterType="java.lang.String" resultType="dto">
+	   SELECT fileid, title, path,filesize,remark
+		 FROM ea_demo_upload WHERE fileid = #{fileid}
+	</select>
+	
+	<!-- 根据文件ID删除一个文件 -->
+	<delete id="delFileByFileID" parameterType="java.lang.String">
+       DELETE FROM ea_demo_upload WHERE fileid = #{fileid}
+	</delete>
+	
+	<!-- 定义出入参对象映射 -->
+	<parameterMap id="prcdto" type="map">
+		<parameter property="myname" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/> <!-- 入参 -->
+		<parameter property="number1" jdbcType="DOUBLE" javaType="java.math.BigDecimal" mode="IN"/> <!-- 入参 -->
+		<parameter property="number2" jdbcType="DOUBLE" javaType="java.math.BigDecimal" mode="IN"/> <!-- 入参 -->
+		<parameter property="sum" jdbcType="DOUBLE" javaType="java.math.BigDecimal" mode="OUT"/> <!-- 出参 -->
+		<parameter property="result" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/> <!-- 出参 -->
+		<parameter property="appCode" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/> <!-- 执行代码 -->
+		<parameter property="errMsg" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/> <!-- 出错信息 -->
+	</parameterMap>
+	<!-- 演示调用存储过程:如果你将存储过程是通过oracle的package的方式来组织,则使用packagename.prcname的方式来调用 -->
+	<update id="g4_prc_demo" parameterMap="prcdto" statementType="CALLABLE">{call g4_prc_demo(?,?,?,?,?,?,?)}</update>
+	
+	<!-- 测试动态分组列 -->
+	<select id="testDynamicGroupField" parameterType="map" resultType="dto">
+			SELECT   sum(fyze)
+			    FROM ea_demo_byjsb
+			group by ${xb}
+	</select>
+	<select id="testDynamicGroupField1" parameterType="map" resultType="dto">
+		SELECT   SUM(fyze) FROM ea_demo_byjsb GROUP BY xb
+	</select>
+	
+	<!-- 查询用户数据 -->
+	<select id="queryUserInfo4Doc" parameterType="map" resultType="userVo">
+		SELECT  userid, username, usertype FROM eauser
+	</select>
+	
+	<!-- 定义出入参对象映射:测试游标 -->
+	<parameterMap id="prcdto_cur" type="map">
+		<parameter property="prm_Xm" jdbcType="VARCHAR" javaType="java.lang.String" mode="IN"/> <!-- 入参 -->
+		<parameter property="cur_list" jdbcType="CURSOR" javaType="java.sql.ResultSet" mode="OUT" resultMap="cur_dto"/>
+		<parameter property="appCode" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/> <!-- 执行代码 -->
+		<parameter property="errMsg" jdbcType="VARCHAR" javaType="java.lang.String" mode="OUT"/> <!-- 出错信息 -->
+	</parameterMap>
+	<resultMap id="cur_dto" type="dto">
+		<result property="xm" column="xm" jdbcType="VARCHAR"/>
+		<result property="fyze" column="fyze" jdbcType="DECIMAL"/>
+	</resultMap>
+	<update id="g4_prc_cursor_demo" parameterMap="prcdto_cur" statementType="CALLABLE">{call g4_prc_cursor_demo(?,?,?,?)}</update>
+</mapper>

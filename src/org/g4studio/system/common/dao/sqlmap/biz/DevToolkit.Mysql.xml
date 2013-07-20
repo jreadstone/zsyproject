@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 开发人员工具箱手工映射SQL语句 --><!--Converted at: Tue Jul 16 22:43:03 CST 2013-->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DevToolkit.Mysql">
+	<!--
+		Sorry, I can`t migrate	dto
+		See console output for further details 
+	-->
+
+</mapper>
